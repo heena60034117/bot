@@ -1,5 +1,8 @@
-const TelegramBot = require('node-telegram-bot-api');
-require('dotenv').config();
+import 'dotenv/config';
+import TelegramBot from 'node-telegram-bot-api';
+import { Ollama } from 'ollama'
+
+const ollama = new Ollama({ host: process.env.OLLAMA_HOST })
 
 // Replace 'YOUR_TOKEN' with your actual Telegram Bot token
 const token = process.env.BOT_TOKEN;
@@ -48,9 +51,8 @@ const subMenuKeyboardChat = {
 const subMenuKeyboardPoetry = {
     reply_markup: {
         keyboard: [
+            ['Love Poetry'],
             ['Heart Break Poetry'],
-            ['Love Poetry'],
-            ['Love Poetry'],
             ['Romantic Poetry'],
             ['Flirty Poetry'],
             ['Back']
@@ -58,6 +60,48 @@ const subMenuKeyboardPoetry = {
         resize_keyboard: true
     }
 };
+
+const promptExe = async (prompt) => {
+    const response = await ollama.chat({
+        model: 'llama3',
+        messages: [
+            { 
+                role: 'user', 
+                content: prompt }
+            ],
+    })
+
+    const outputString = response.message.content;
+    return outputString;
+}
+
+const love_poetry = async (bot, chatId) => {
+    let response = await promptExe('Give me single line romantic poetry to impress a girl.');
+    // console.log('response3',response);
+    bot.sendMessage(chatId, response);
+}
+
+const heart_break_poetry = async (bot, chatId) => {
+    let response = await promptExe('Give me single line Heart Break Poetry.');
+    bot.sendMessage(chatId, response);
+}
+
+const romantic_poetry = async (bot, chatId) => {
+    let response = await promptExe('Give me single line Romantic Poetry.');
+    bot.sendMessage(chatId, response);
+}
+
+const flirty_poetry = async (bot, chatId) => {
+    let response = await promptExe('Give me single line Flirty Poetry.');
+    bot.sendMessage(chatId, response);
+}
+
+const chit_chat_starters = async (bot, chatId) => {
+    let response = await promptExe('Give me Ice Breaking lines.');
+    bot.sendMessage(chatId, response);
+}
+
+
 
 // Object to store user data
 const userData = {};
@@ -74,16 +118,28 @@ bot.onText(/\/start/, (msg) => {
 });
 
 // Handle menu options
-bot.on('message', (msg) => {
+bot.on('message', async (msg) => {
     const chatId = msg.chat.id;
     const text = msg.text;
 
     switch (text) {
         case 'Chit-Chat Starters':
-            bot.sendMessage(chatId, 'You selected Chit-Chat Starters. What would you like to do?', subMenuKeyboardChitChat);
+            await chit_chat_starters(bot,chatId);
             break;
         case 'Poetry':
             bot.sendMessage(chatId, 'You selected Poetry. What kindly or Poetry you like?', subMenuKeyboardPoetry);
+            break;
+        case 'Love Poetry':
+            await love_poetry(bot,chatId);
+            break;
+        case 'Heart Break Poetry':
+            await heart_break_poetry(bot,chatId);
+            break;
+        case 'Romantic Poetry':
+            await romantic_poetry(bot,chatId);
+            break;
+        case 'Flirty Poetry':
+            await flirty_poetry(bot,chatId);
             break;
         case 'Random Chats':
             bot.sendMessage(chatId, 'You selected Random Chats.',subMenuKeyboardChat);
